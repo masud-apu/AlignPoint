@@ -2,11 +2,22 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
+interface Client {
+  id: string
+  name: string
+  email: string
+  phone: string
+  company: string
+  address: string
+}
 
 interface Phase {
   id: number
@@ -22,9 +33,26 @@ interface CreateProjectModalProps {
 }
 
 export function CreateProjectModal({ onClose, onSave }: CreateProjectModalProps) {
+  // Mock clients data (replace with actual data source)
+  const [clients, setClients] = useState<Client[]>([
+    { id: "1", name: "Acme Corp", email: "contact@acme.com", phone: "123-456-7890", company: "Acme Corporation", address: "123 Business St" },
+    { id: "2", name: "Tech Solutions", email: "info@techsolutions.com", phone: "098-765-4321", company: "Tech Solutions Inc", address: "456 Tech Ave" }
+  ])
+  
+  const [showNewClientDialog, setShowNewClientDialog] = useState(false)
+  const [selectedClientId, setSelectedClientId] = useState<string>("")
+  const [newClientData, setNewClientData] = useState<Omit<Client, "id">>({
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    address: ""
+  })
+
   const [formData, setFormData] = useState({
     title: "",
     type: "website",
+    clientName: "",
     instructions: "",
     timeTrackingRequired: false,
     timeTrackingMethod: "manual",
@@ -68,9 +96,16 @@ export function CreateProjectModal({ onClose, onSave }: CreateProjectModalProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
+    const selectedClient = clients.find(c => c.id === selectedClientId)
+    if (!selectedClient) {
+      alert("Please select a client or create a new one")
+      return
+    }
+
     const newProject = {
       id: Date.now(),
       title: formData.title,
+      client: selectedClient,
       type: formData.type,
       instructions: formData.instructions,
       status: 0, // New project starts at 0%
@@ -189,6 +224,35 @@ export function CreateProjectModal({ onClose, onSave }: CreateProjectModalProps)
                     required
                     className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
                   />
+                </div>
+
+                {/* Client Selection */}
+                <div className="space-y-2">
+                  <Label htmlFor="clientName" className="text-alignpoint-gray-700 font-medium">
+                    Client *
+                  </Label>
+                  <div className="flex space-x-2">
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                      <SelectTrigger className="w-full border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red">
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowNewClientDialog(true)}
+                      className="whitespace-nowrap border-alignpoint-gray-300 hover:bg-alignpoint-red hover:text-white"
+                    >
+                      New Client
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Project Type */}
@@ -456,6 +520,95 @@ export function CreateProjectModal({ onClose, onSave }: CreateProjectModalProps)
           </form>
         </CardContent>
       </Card>
+
+      {/* New Client Dialog */}
+      <Dialog open={showNewClientDialog} onOpenChange={setShowNewClientDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Client</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="clientName">Client Name *</Label>
+              <Input
+                id="clientName"
+                value={newClientData.name}
+                onChange={(e) => setNewClientData({ ...newClientData, name: e.target.value })}
+                placeholder="Enter client name"
+                className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company">Company Name</Label>
+              <Input
+                id="company"
+                value={newClientData.company}
+                onChange={(e) => setNewClientData({ ...newClientData, company: e.target.value })}
+                placeholder="Enter company name (optional)"
+                className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={newClientData.email}
+                  onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
+                  placeholder="Enter email address"
+                  className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={newClientData.phone}
+                  onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
+                  placeholder="Enter phone number"
+                  className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={newClientData.address}
+                onChange={(e) => setNewClientData({ ...newClientData, address: e.target.value })}
+                placeholder="Enter address"
+                className="border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2 mt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowNewClientDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white"
+              onClick={() => {
+                const newClient = {
+                  id: Date.now().toString(),
+                  ...newClientData
+                }
+                setClients([...clients, newClient])
+                setSelectedClientId(newClient.id)
+                setNewClientData({ name: "", email: "", phone: "", company: "", address: "" })
+                setShowNewClientDialog(false)
+              }}
+            >
+              Add Client
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

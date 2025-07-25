@@ -6,6 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlignpointLogo } from "@/components/alignpoint-logo"
+import { SettingsContent } from "@/components/settings-content"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { EnhancedProjectsGrid } from "@/components/enhanced-projects-grid"
 import { CreateProjectModal } from "@/components/create-project-modal"
 import { ProjectDetailPage } from "@/components/project-detail-page"
@@ -14,7 +22,6 @@ import { OverdueTasksPage } from "@/components/overdue-tasks-page"
 import { ActiveProjectsList } from "@/components/active-projects-list"
 import { AttentionNeededPanel } from "@/components/attention-needed-panel"
 import { RecentActivityFeed } from "@/components/recent-activity-feed"
-import { SettingsContent } from "@/components/settings-content"
 
 interface UserSession {
   email: string
@@ -32,7 +39,7 @@ interface AdminDashboardProps {
 ───────────────────────────────────────────────────────── */
 
 export default function AdminDashboard({ userSession }: AdminDashboardProps) {
-  const [currentView, setCurrentView] = useState<"dashboard" | "projects" | "users" | "activity" | "overdue">("dashboard")
+  const [currentView, setCurrentView] = useState<"dashboard" | "projects" | "users" | "activity" | "overdue" | "settings">("dashboard")
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [selectedProject, setSelectedProject] = useState<any>(null)
 
@@ -121,11 +128,15 @@ export default function AdminDashboard({ userSession }: AdminDashboardProps) {
     <div className="min-h-screen bg-alignpoint-gray-50">
       <Header
         currentView={currentView}
-        onViewChange={(view) => setCurrentView(view as "dashboard" | "projects" | "users" | "activity" | "overdue")}
+        onViewChange={(view) => setCurrentView(view as "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings")}
         userSession={userSession}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
+        {currentView === "settings" && (
+          <SettingsContent />
+        )}
+        
         {currentView === "dashboard" && (
           <>
             {/* Summary Cards */}
@@ -234,20 +245,17 @@ function Header({
   onViewChange,
   userSession
 }: {
-  currentView: string
-  onViewChange: (view: string) => void
+  currentView: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings"
+  onViewChange: (view: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings") => void
   userSession: UserSession
 }) {
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showSettingsModal, setShowSettingsModal] = useState(false)
-
   const handleLogout = () => {
     // Reset to login page
     window.location.reload()
   }
 
   return (
-    <header className="bg-white border-b border-alignpoint-gray-200 px-6 py-4">
+    <header className="sticky top-0 z-40 bg-white border-b border-alignpoint-gray-200 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand Logo */}
         <button 
@@ -334,57 +342,41 @@ function Header({
 
         {/* User Profile */}
         <div className="flex items-center space-x-4">
-
           {/* User Profile Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-alignpoint-gray-50 transition-colors"
-            >
-              <div className="w-8 h-8 bg-alignpoint-red text-white rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium">{userSession.avatar}</span>
-              </div>
-              <div className="text-left hidden sm:block">
-                <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
-                <div className="text-xs text-alignpoint-gray-500 capitalize">{userSession.role.replace('_', ' ')}</div>
-              </div>
-              <svg className="w-4 h-4 text-alignpoint-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {showDropdown && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-alignpoint-gray-200 py-2 z-10">
-                <button
-                  onClick={() => setShowSettingsModal(true)}
-                  className="w-full text-left px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50 flex items-center"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Settings
-                </button>
-                <div className="border-t border-alignpoint-gray-200 my-1"></div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-2 text-sm text-alignpoint-red hover:bg-alignpoint-red/5 flex items-center"
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Sign Out
-                </button>
-              </div>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="fixed-width-button flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-alignpoint-gray-50 transition-colors">
+                <div className="w-8 h-8 bg-alignpoint-red text-white rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium">{userSession.avatar}</span>
+                </div>
+                <div className="text-left hidden sm:block">
+                  <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
+                  <div className="text-xs text-alignpoint-gray-500 capitalize">{userSession.role.replace('_', ' ')}</div>
+                </div>
+                <svg className="w-4 h-4 text-alignpoint-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" sideOffset={5} align="end">
+              <DropdownMenuItem onClick={() => onViewChange("settings")} className="flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-alignpoint-red hover:bg-alignpoint-red/5 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-
-      {/* Settings Modal */}
-      {showSettingsModal && (
-        <SettingsModal onClose={() => setShowSettingsModal(false)} />
-      )}
     </header>
   )
 }
@@ -738,7 +730,11 @@ function OverdueTasksContent() {
 ───────────────────────────────────────────────────────── */
 
 function SettingsModal({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState("personal")
+  const [activeTab, setActiveTab] = useState<string>("personal")
+  useEffect(() => {
+    // Ensure the first tab is selected by default
+    setActiveTab("personal")
+  }, [])
   const [settings, setSettings] = useState({
     // Personal Settings
     firstName: "Alex",

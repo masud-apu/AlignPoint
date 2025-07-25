@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { AlignpointLogo } from "@/components/alignpoint-logo"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface UserSession {
   email: string
@@ -58,8 +65,6 @@ export default function TeamMemberDashboard({ userSession }: TeamMemberDashboard
 ───────────��───────────────────────────────────────────── */
 
 function Header({ userSession }: { userSession: UserSession }) {
-  const [showDropdown, setShowDropdown] = useState(false)
-
   const handleLogout = () => {
     window.location.reload()
   }
@@ -83,41 +88,30 @@ function Header({ userSession }: { userSession: UserSession }) {
         </Button>
 
         {/* User Profile Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-alignpoint-gray-50 transition-colors"
-          >
-            <div className="w-8 h-8 rounded-full bg-alignpoint-red text-white flex items-center justify-center font-medium text-sm">
-              {userSession.avatar}
-            </div>
-            <div className="text-left hidden sm:block">
-              <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
-              <div className="text-xs text-alignpoint-gray-500 capitalize">{userSession.role.replace('_', ' ')}</div>
-            </div>
-            <svg className="w-4 h-4 text-alignpoint-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-
-          {showDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-alignpoint-gray-200 py-2 z-10">
-              <button className="w-full text-left px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50">
-                Profile Settings
-              </button>
-              <button className="w-full text-left px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50">
-                Account Preferences
-              </button>
-              <div className="border-t border-alignpoint-gray-200 my-1"></div>
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-alignpoint-red hover:bg-alignpoint-red/5"
-              >
-                Sign Out
-              </button>
-            </div>
-          )}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-alignpoint-gray-50 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-alignpoint-red text-white flex items-center justify-center font-medium text-sm">
+                {userSession.avatar}
+              </div>
+              <div className="text-left hidden sm:block">
+                <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
+                <div className="text-xs text-alignpoint-gray-500 capitalize">{userSession.role.replace('_', ' ')}</div>
+              </div>
+              <svg className="w-4 h-4 text-alignpoint-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48">
+            <DropdownMenuItem>Profile Settings</DropdownMenuItem>
+            <DropdownMenuItem>Account Preferences</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-alignpoint-red hover:bg-alignpoint-red/5">
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

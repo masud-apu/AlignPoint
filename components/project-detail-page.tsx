@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlignpointLogo } from "@/components/alignpoint-logo"
+// import { SubtaskManager } from "@/components/subtask-manager"
 
 interface Phase {
   id: number
@@ -17,7 +18,13 @@ interface Phase {
   tasks: Task[]
 }
 
-interface Task {
+export interface Subtask {
+  id: number
+  text: string
+  completed: boolean
+}
+
+export interface Task {
   id: number
   title: string
   description: string
@@ -27,11 +34,7 @@ interface Task {
   dueDate: string
   createdAt: string
   phaseId: number
-  subtasks: Array<{
-    id: number
-    text: string
-    completed: boolean
-  }>
+  subtasks: Subtask[]
   timeLogged?: number
   comments: Array<{
     id: number
@@ -39,6 +42,12 @@ interface Task {
     content: string
     timestamp: string
   }>
+}
+
+export interface Subtask {
+  id: number
+  text: string
+  completed: boolean
 }
 
 interface TeamMember {
@@ -61,6 +70,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
   const [showTaskDetail, setShowTaskDetail] = useState<Task | null>(null)
   const [showEditProject, setShowEditProject] = useState(false)
   const [showProjectSettings, setShowProjectSettings] = useState(false)
+  const [showAddMember, setShowAddMember] = useState(false)
 
   // Initialize phases from project data or use default phases
   const getInitialPhases = (): Phase[] => {
@@ -250,7 +260,12 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-alignpoint-gray-50">
-      <ProjectHeader project={project} onBack={onBack} />
+      <ProjectHeader 
+        project={project} 
+        onBack={onBack}
+        setShowEditProject={setShowEditProject}
+        setShowProjectSettings={setShowProjectSettings}
+      />
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Project Overview Cards */}
@@ -362,7 +377,17 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
    Project Header
 ───────────────────────────────────────────────────────── */
 
-function ProjectHeader({ project, onBack }: { project: any; onBack: () => void }) {
+function ProjectHeader({ 
+  project, 
+  onBack,
+  setShowEditProject,
+  setShowProjectSettings 
+}: { 
+  project: any; 
+  onBack: () => void;
+  setShowEditProject: (show: boolean) => void;
+  setShowProjectSettings: (show: boolean) => void;
+}) {
   return (
     <header className="bg-white border-b border-alignpoint-gray-200 px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -759,6 +784,8 @@ function TeamTab({
    Create Task Modal
 ───────────────────────────────────────────────────────── */
 
+import { SubtaskManager } from "./subtask-manager"
+
 function CreateTaskModal({
   phaseId,
   teamMembers,
@@ -778,13 +805,15 @@ function CreateTaskModal({
     dueDate: "",
     status: "todo" as Task["status"],
   })
+  
+  const [subtasks, setSubtasks] = useState<Subtask[]>([])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSave({
       ...formData,
       phaseId,
-      subtasks: [],
+      subtasks: subtasks,
     })
   }
 
@@ -858,6 +887,13 @@ function CreateTaskModal({
               />
             </div>
 
+            <div className="space-y-2">
+              <SubtaskManager
+                subtasks={subtasks}
+                onChange={setSubtasks}
+              />
+            </div>
+
             <div className="flex items-center justify-end space-x-3 pt-6 border-t border-alignpoint-gray-200">
               <Button type="button" onClick={onClose} variant="ghost">Cancel</Button>
               <Button type="submit" className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white">
@@ -873,94 +909,9 @@ function CreateTaskModal({
 
 /* ─────────────────────────────────────────────────────────
    Task Detail Modal
-─────────────────────────────────��─────────────────────── */
+───────────────────────────────────────────────────────── */
 
-function TaskDetailModal({
-  task,
-  onClose,
-  onStatusChange,
-}: {
-  task: Task
-  onClose: () => void
-  onStatusChange: (status: Task["status"]) => void
-}) {
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto border-alignpoint-gray-200">
-        <CardHeader className="border-b border-alignpoint-gray-200">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-semibold text-alignpoint-black">{task.title}</CardTitle>
-            <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div>
-                <h3 className="font-semibold text-alignpoint-black mb-2">Description</h3>
-                <p className="text-alignpoint-gray-700">{task.description}</p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-alignpoint-black mb-4">
-                  Subtasks ({task.subtasks.filter(st => st.completed).length}/{task.subtasks.length})
-                </h3>
-                <div className="space-y-3">
-                  {task.subtasks.map((subtask) => (
-                    <div key={subtask.id} className="flex items-center space-x-3 p-3 border border-alignpoint-gray-200 rounded-lg">
-                      <input
-                        type="checkbox"
-                        checked={subtask.completed}
-                        readOnly
-                        className="w-4 h-4 text-alignpoint-red border-alignpoint-gray-300 rounded"
-                      />
-                      <span className={`flex-1 ${subtask.completed ? 'line-through text-alignpoint-gray-500' : 'text-alignpoint-black'}`}>
-                        {subtask.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h4 className="font-semibold text-alignpoint-black mb-2">Status</h4>
-                <select
-                  value={task.status}
-                  onChange={(e) => onStatusChange(e.target.value as Task["status"])}
-                  className="w-full p-2 border border-alignpoint-gray-300 rounded-md focus:border-alignpoint-red focus:ring-1 focus:ring-alignpoint-red focus:outline-none"
-                >
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="in_review">In Review</option>
-                  <option value="done">Done</option>
-                </select>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-alignpoint-black mb-2">Assignee</h4>
-                <p className="text-alignpoint-gray-700">{task.assignee}</p>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-alignpoint-black mb-2">Due Date</h4>
-                <p className="text-alignpoint-gray-700">{task.dueDate}</p>
-              </div>
-
-              {task.timeLogged && (
-                <div>
-                  <h4 className="font-semibold text-alignpoint-black mb-2">Time Logged</h4>
-                  <p className="text-alignpoint-gray-700">{task.timeLogged} hours</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+import { TaskDetailModal } from "./task-detail-modal"
 
 /* ─────────────────────────────────────────────────────────
    Add Member Modal
