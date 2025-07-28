@@ -1,12 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Project, TeamRequest, Milestone, ProjectUpdate, SharedFile } from '../types'
-import { MilestoneCard } from './cards/milestone-card'
-import { UpdateCard } from './cards/update-card'
-import { getFileIcon } from '../utils/file-icons'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { AlignpointLogo } from './alignpoint-logo'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlignpointLogo } from "@/components/alignpoint-logo"
 
 interface UserSession {
   email: string
@@ -19,9 +15,62 @@ interface ClientDashboardProps {
   userSession: UserSession
 }
 
+interface Milestone {
+  id: number
+  title: string
+  description: string
+  status: "upcoming" | "in_progress" | "completed"
+  dueDate: string
+  completionDate?: string
+  visibleToClient: boolean
+}
+
+interface ProjectUpdate {
+  id: number
+  title: string
+  content: string
+  author: string
+  date: string
+  type: "milestone" | "general" | "file_shared"
+}
+
+interface TeamRequest {
+  id: number
+  question: string
+  requestedBy: string
+  requestedAt: string
+  status: "pending" | "answered" | "clarification_needed"
+  response?: string
+  responseAt?: string
+}
+
+interface Project {
+  id: number
+  name: string
+  description: string
+  progress: number
+  startDate: string
+  dueDate: string
+  status: "active" | "on_hold" | "completed"
+  currentPhase: string
+  timeline: "on_track" | "delayed" | "ahead"
+  instructions: string
+  nextMilestone: string
+  notes?: string
+  teamRequests: TeamRequest[]
+}
+
+interface SharedFile {
+  id: number
+  name: string
+  type: string
+  size: string
+  sharedDate: string
+  sharedBy: string
+}
+
 export default function ClientDashboard({ userSession }: ClientDashboardProps) {
   const [selectedProjectId, setSelectedProjectId] = useState<number>(1)
-  const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   // Demo projects data
   const projects: Project[] = [
@@ -263,11 +312,8 @@ Widgets\t1x1 and 2x2 home screen widgets with today's meds and quick add button
             </div>
             
             {/* User Profile */}
-            <div className="relative">
-              <button
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-alignpoint-gray-50 transition-colors"
-              >
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center shadow-sm">
                   <span className="text-sm font-medium">{userSession.avatar}</span>
                 </div>
@@ -275,65 +321,14 @@ Widgets\t1x1 and 2x2 home screen widgets with today's meds and quick add button
                   <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
                   <div className="text-xs text-alignpoint-gray-500">Client</div>
                 </div>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className={`w-4 h-4 text-alignpoint-gray-600 transition-transform duration-200 ${isProfileOpen ? 'transform rotate-180' : ''}`}
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+              </div>
+              <div className="h-6 w-px bg-alignpoint-gray-200"></div>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-alignpoint-gray-600 hover:text-alignpoint-red transition-colors flex items-center space-x-1"
+              >
+                <span>Sign Out</span>
               </button>
-
-              {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-alignpoint-gray-200 py-2 z-50">
-                  <div className="px-4 py-2 border-b border-alignpoint-gray-200">
-                    <div className="text-sm font-medium text-alignpoint-black">{userSession.name}</div>
-                    <div className="text-xs text-alignpoint-gray-500">{userSession.email}</div>
-                  </div>
-                  <div className="py-1">
-                    <a href="/settings?tab=notifications" className="flex items-center px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3 text-alignpoint-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                      </svg>
-                      Notification Settings
-                    </a>
-                    <a href="/settings?tab=personal" className="flex items-center px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3 text-alignpoint-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                      Personal Settings
-                    </a>
-                    <a href="/settings?tab=system" className="flex items-center px-4 py-2 text-sm text-alignpoint-gray-700 hover:bg-alignpoint-gray-50">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3 text-alignpoint-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                      </svg>
-                      System Information
-                    </a>
-                  </div>
-                  <div className="border-t border-alignpoint-gray-200 pt-1">
-                    <button
-                      onClick={handleLogout}
-                      className="flex w-full items-center px-4 py-2 text-sm text-alignpoint-red hover:bg-alignpoint-gray-50"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -801,4 +796,123 @@ Widgets\t1x1 and 2x2 home screen widgets with today's meds and quick add button
   )
 }
 
+/* ─────────────────────────────────────────────────────────
+   Milestone Card Component
+───────────────────────────────────────────────────────── */
 
+function MilestoneCard({ milestone }: { milestone: Milestone }) {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed": return "✅"
+      case "in_progress": return "🚀"
+      case "upcoming": return "⏳"
+      default: return "📋"
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "bg-green-100 text-green-800 border-green-200"
+      case "in_progress": return "bg-blue-100 text-blue-800 border-blue-200"
+      case "upcoming": return "bg-alignpoint-gray-100 text-alignpoint-gray-800 border-alignpoint-gray-200"
+      default: return "bg-alignpoint-gray-100 text-alignpoint-gray-800"
+    }
+  }
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed": return "Completed"
+      case "in_progress": return "In Progress"
+      case "upcoming": return "Upcoming"
+      default: return status
+    }
+  }
+
+  return (
+    <Card className="border-alignpoint-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">{getStatusIcon(milestone.status)}</span>
+            <div>
+              <h3 className="text-lg font-semibold text-alignpoint-black">{milestone.title}</h3>
+              <p className="text-alignpoint-gray-600 mt-1">{milestone.description}</p>
+            </div>
+          </div>
+          <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(milestone.status)}`}>
+            {getStatusText(milestone.status)}
+          </span>
+        </div>
+        
+        <div className="flex items-center justify-between text-sm text-alignpoint-gray-600">
+          <span>Due: {milestone.dueDate}</span>
+          {milestone.completionDate && (
+            <span className="text-green-600 font-medium">Completed: {milestone.completionDate}</span>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────
+   Update Card Component
+───────────────────────────────────────────────────────── */
+
+function UpdateCard({ update }: { update: ProjectUpdate }) {
+  const getUpdateIcon = (type: string) => {
+    switch (type) {
+      case "milestone": return "🎯"
+      case "file_shared": return "📎"
+      case "general": return "📝"
+      default: return "📢"
+    }
+  }
+
+  const getUpdateTypeColor = (type: string) => {
+    switch (type) {
+      case "milestone": return "bg-purple-100 text-purple-800"
+      case "file_shared": return "bg-blue-100 text-blue-800"
+      case "general": return "bg-green-100 text-green-800"
+      default: return "bg-alignpoint-gray-100 text-alignpoint-gray-800"
+    }
+  }
+
+  return (
+    <Card className="border-alignpoint-gray-200">
+      <CardContent className="p-6">
+        <div className="flex items-start space-x-4">
+          <div className="flex-shrink-0">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getUpdateTypeColor(update.type)}`}>
+              <span className="text-lg">{getUpdateIcon(update.type)}</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-alignpoint-black">{update.title}</h3>
+              <span className="text-sm text-alignpoint-gray-500">{update.date}</span>
+            </div>
+            <p className="text-alignpoint-gray-700 mb-3">{update.content}</p>
+            <div className="text-sm text-alignpoint-gray-500">
+              by {update.author}
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────
+   Helper Functions
+───────────────────────────────────────────────────────── */
+
+function getFileIcon(type: string) {
+  switch (type) {
+    case "pdf": return "📄"
+    case "figma": return "🎨"
+    case "doc": return "📝"
+    case "image": return "🖼️"
+    default: return "📁"
+  }
+}

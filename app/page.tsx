@@ -12,10 +12,10 @@ import ClientDashboard from "@/components/client-dashboard"
 
 type UserRole = "admin" | "project_manager" | "designer" | "developer" | "tester" | "client" | null
 
-export interface UserSession {
+interface UserSession {
   email: string
   name: string
-  role: Exclude<UserRole, null>
+  role: UserRole
   avatar: string
 }
 
@@ -100,7 +100,7 @@ export default function LoginPage() {
   }
 
   // Role-based dashboard routing
-  if (userSession && userSession.role) {
+  if (userSession) {
     switch (userSession.role) {
       case "admin":
         return <AdminDashboard userSession={userSession} />
