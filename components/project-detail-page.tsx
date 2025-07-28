@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlignpointLogo } from "@/components/alignpoint-logo"
-// import { SubtaskManager } from "@/components/subtask-manager"
+import { SubtaskManager } from "@/components/subtask-manager"
 
 interface Phase {
   id: number
@@ -42,12 +42,6 @@ export interface Task {
     content: string
     timestamp: string
   }>
-}
-
-export interface Subtask {
-  id: number
-  text: string
-  completed: boolean
 }
 
 interface TeamMember {
@@ -696,6 +690,20 @@ function TeamTab({
   setPhases: (phases: Phase[]) => void
 }) {
   const [showAddMember, setShowAddMember] = useState(false)
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState<number | null>(null)
+  const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+
+  // Function to check if the current user can manage a specific role
+  const canManageRole = (userRole: string, targetRole: string) => {
+    const roleHierarchy: Record<string, string[]> = {
+      admin: ["admin", "project_manager", "designer", "developer", "tester"],
+      project_manager: ["designer", "developer", "tester"],
+      designer: [],
+      developer: [],
+      tester: []
+    };
+    return roleHierarchy[userRole]?.includes(targetRole) || false;
+  }
 
   const handleToggleClientVisibility = (phaseId: number) => {
     setPhases(phases.map(phase =>
@@ -703,6 +711,16 @@ function TeamTab({
         ? { ...phase, visibleToClient: !phase.visibleToClient }
         : phase
     ))
+  }
+
+  const handleRemoveMember = (memberId: number) => {
+    // Here you would implement the actual member removal logic
+    console.log(`Removing member ${memberId}`);
+    setShowRemoveConfirm(null);
+  }
+
+  const handleEditMember = (member: TeamMember) => {
+    setEditingMember(member);
   }
 
   return (
@@ -732,9 +750,28 @@ function TeamTab({
                 <h3 className="font-semibold text-alignpoint-black mb-2">{member.name}</h3>
                 <p className="text-sm text-alignpoint-gray-600 mb-2 capitalize">{member.role.replace('_', ' ')}</p>
                 <p className="text-xs text-alignpoint-gray-500 mb-4">{member.email}</p>
-                <Button variant="ghost" size="sm" className="text-alignpoint-red hover:text-alignpoint-red/80">
-                  Remove
-                </Button>
+                <div className="flex justify-center space-x-2">
+                  {canManageRole(project.userRole, member.role) && (
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-alignpoint-gray-600 hover:text-alignpoint-black"
+                        onClick={() => handleEditMember(member)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-alignpoint-red hover:text-alignpoint-red/80"
+                        onClick={() => setShowRemoveConfirm(member.id)}
+                      >
+                        Remove
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -776,6 +813,73 @@ function TeamTab({
       {showAddMember && (
         <AddMemberModal onClose={() => setShowAddMember(false)} />
       )}
+
+      {/* Remove Confirmation Dialog */}
+      {showRemoveConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-alignpoint-gray-200">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-alignpoint-black">Confirm Removal</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <p className="text-alignpoint-gray-700 mb-6">Are you sure you want to remove this team member? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
+                <Button variant="ghost" onClick={() => setShowRemoveConfirm(null)}>Cancel</Button>
+                <Button 
+                  className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white"
+                  onClick={() => handleRemoveMember(showRemoveConfirm)}
+                >
+                  Remove Member
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit Member Modal */}
+      {editingMember && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md border-alignpoint-gray-200">
+            <CardHeader className="border-b border-alignpoint-gray-200">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-semibold text-alignpoint-black">Edit Team Member</CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => setEditingMember(null)}>✕</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <select 
+                    defaultValue={editingMember.role}
+                    className="w-full p-2 border border-alignpoint-gray-300 rounded-md focus:border-alignpoint-red focus:ring-1 focus:ring-alignpoint-red focus:outline-none"
+                  >
+                    {canManageRole(project.userRole, 'project_manager') && (
+                      <option value="project_manager">Project Manager</option>
+                    )}
+                    {canManageRole(project.userRole, 'designer') && (
+                      <option value="designer">Designer</option>
+                    )}
+                    {canManageRole(project.userRole, 'developer') && (
+                      <option value="developer">Developer</option>
+                    )}
+                    {canManageRole(project.userRole, 'tester') && (
+                      <option value="tester">Tester</option>
+                    )}
+                  </select>
+                </div>
+                <div className="flex items-center justify-end space-x-3 pt-4">
+                  <Button type="button" onClick={() => setEditingMember(null)} variant="ghost">Cancel</Button>
+                  <Button className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white">
+                    Save Changes
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }
@@ -783,8 +887,6 @@ function TeamTab({
 /* ─────────────────────────────────────────────────────────
    Create Task Modal
 ───────────────────────────────────────────────────────── */
-
-import { SubtaskManager } from "./subtask-manager"
 
 function CreateTaskModal({
   phaseId,

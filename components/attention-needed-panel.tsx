@@ -29,11 +29,11 @@ export function AttentionNeededPanel({ onViewOverdue }: { onViewOverdue?: () => 
   ]
 
   return (
-    <Card className="border-red-200">
+    <Card className="border-alignpoint-red/20">
       <CardHeader className="pb-3">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-          <CardTitle className="text-lg font-semibold text-red-800">Attention Needed</CardTitle>
+          <div className="w-2 h-2 bg-alignpoint-red rounded-full"></div>
+          <CardTitle className="text-lg font-semibold text-alignpoint-red">Attention Needed</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -44,7 +44,7 @@ export function AttentionNeededPanel({ onViewOverdue }: { onViewOverdue?: () => 
               <div className="text-xs text-slate-600">
                 <span>{item.assignee}</span> • <span>{item.project}</span>
               </div>
-              <span className="text-xs font-medium text-red-600">
+              <span className="text-xs font-medium text-alignpoint-red">
                 {item.overdueDays} day{item.overdueDays > 1 ? "s" : ""} overdue
               </span>
             </div>
@@ -54,7 +54,7 @@ export function AttentionNeededPanel({ onViewOverdue }: { onViewOverdue?: () => 
           onClick={onViewOverdue}
           variant="outline"
           size="sm"
-          className="w-full mt-3 text-red-700 border-red-200 hover:bg-red-50 bg-transparent"
+          className="w-full mt-3 text-alignpoint-red border-alignpoint-red/20 hover:bg-alignpoint-red/5 bg-transparent"
         >
           View All Overdue Tasks
         </Button>

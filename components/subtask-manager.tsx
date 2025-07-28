@@ -29,7 +29,8 @@ export function SubtaskManager({ subtasks, onChange }: SubtaskManagerProps) {
       completed: false
     }
     
-    onChange([...subtasks, newSubtask])
+    const updatedSubtasks = [...subtasks, newSubtask]
+    onChange(updatedSubtasks)
     setNewSubtaskText("")
   }
 
@@ -95,7 +96,11 @@ export function SubtaskManager({ subtasks, onChange }: SubtaskManagerProps) {
         />
         <Button
           type="button"
-          onClick={addSubtask}
+          variant="default"
+          onClick={(e) => {
+            e.preventDefault();
+            addSubtask();
+          }}
           className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white"
         >
           <Plus className="h-4 w-4" />
