@@ -2,29 +2,286 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useSearchParams } from "next/navigation"
+
+interface User {
+  id: number
+  name: string
+  email: string
+  role: string
+  avatar: string
+}
+
+interface UserSettingsState {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  avatar: string
+  emailNotifications: boolean
+  pushNotifications: boolean
+  smsNotifications: boolean
+  projectUpdates: boolean
+  taskReminders: boolean
+  version: string
+  lastLogin: string
+  browser: string
+  platform: string
+}
+
+interface SettingsSection {
+  id: string
+  title: string
+  icon: string
+  description: string
+  content: React.ReactNode
+}
 
 export function SettingsContent() {
-  const [activeSection, setActiveSection] = useState("general")
-  interface User {
-    id: number
-    name: string
-    email: string
-    role: string
-    avatar: string
-  }
-
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get("tab") || "personal"
+  
+  const [activeSection, setActiveSection] = useState<string>("personal")
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [showAddUserModal, setShowAddUserModal] = useState(false)
   const [showEditUserModal, setShowEditUserModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [users, setUsers] = useState<User[]>([
-    { id: 1, name: "Alex Admin", email: "alex@alignpoint.com", role: "admin", avatar: "A" },
-    { id: 2, name: "Priya Manager", email: "priya@alignpoint.com", role: "project_manager", avatar: "P" },
-    { id: 3, name: "Ben Developer", email: "ben@alignpoint.com", role: "developer", avatar: "B" },
-    { id: 4, name: "Sarah Designer", email: "sarah@alignpoint.com", role: "designer", avatar: "S" },
-    { id: 5, name: "Tanya Tester", email: "tanya@alignpoint.com", role: "tester", avatar: "T" }
-  ])
+  const [users, setUsers] = useState<User[]>([])
+  
+  const [settingsState, setSettingsState] = useState<UserSettingsState>({
+    // Personal Settings
+    firstName: "John",
+    lastName: "Client",
+    email: "john@example.com",
+    phone: "+1 (555) 123-4567",
+    avatar: "",
+    
+    // Notification Settings
+    emailNotifications: true,
+    pushNotifications: true,
+    smsNotifications: true,
+    projectUpdates: true,
+    taskReminders: true,
+    
+    // System Information (read-only)
+    version: "1.0.0",
+    lastLogin: "2024-07-29 09:00 AM",
+    browser: "Chrome 115.0.0",
+    platform: "Windows",
+  })
 
+  const handleSave = () => {
+    // Save settings logic here
+    alert("Settings saved successfully!")
+  }
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-alignpoint-black">Client Settings</h1>
+        <p className="text-alignpoint-gray-600 mt-2">Manage your account settings and preferences</p>
+      </div>
+
+      <Tabs defaultValue={defaultTab} className="space-y-6">
+        <TabsList className="w-full border-b border-alignpoint-gray-200 bg-transparent p-0">
+          <div className="flex space-x-6">
+            <TabsTrigger
+              value="personal"
+              className="pb-4 text-sm font-medium text-alignpoint-gray-600 border-b-2 border-transparent data-[state=active]:border-alignpoint-red data-[state=active]:text-alignpoint-black"
+            >
+              Personal Settings
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="pb-4 text-sm font-medium text-alignpoint-gray-600 border-b-2 border-transparent data-[state=active]:border-alignpoint-red data-[state=active]:text-alignpoint-black"
+            >
+              Notification Settings
+            </TabsTrigger>
+            <TabsTrigger
+              value="system"
+              className="pb-4 text-sm font-medium text-alignpoint-gray-600 border-b-2 border-transparent data-[state=active]:border-alignpoint-red data-[state=active]:text-alignpoint-black"
+            >
+              System Information
+            </TabsTrigger>
+          </div>
+        </TabsList>
+
+        <TabsContent value="personal" className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                {/* Avatar Section */}
+                <div className="flex items-center space-x-6">
+                  <div className="w-20 h-20 bg-alignpoint-red text-white rounded-full flex items-center justify-center text-2xl font-bold">
+                    {settingsState.firstName[0]}{settingsState.lastName[0]}
+                  </div>
+                  <div>
+                    <Button variant="outline" size="sm" className="border-alignpoint-gray-300 mr-2">
+                      Upload Photo
+                    </Button>
+                    <Button variant="ghost" size="sm" className="text-alignpoint-gray-600">
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Personal Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label>First Name</Label>
+                    <Input
+                      value={settingsState.firstName}
+                      onChange={(e) => setSettingsState({ ...settingsState, firstName: e.target.value })}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Last Name</Label>
+                    <Input
+                      value={settingsState.lastName}
+                      onChange={(e) => setSettingsState({ ...settingsState, lastName: e.target.value })}
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input
+                      type="email"
+                      value={settingsState.email}
+                      onChange={(e) => setSettingsState({ ...settingsState, email: e.target.value })}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Phone Number</Label>
+                    <Input
+                      value={settingsState.phone}
+                      onChange={(e) => setSettingsState({ ...settingsState, phone: e.target.value })}
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-alignpoint-black mb-4">Notification Preferences</h3>
+                <div className="space-y-4">
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-alignpoint-gray-700 font-medium">Email notifications</span>
+                      <p className="text-sm text-alignpoint-gray-500">Receive important updates via email</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settingsState.emailNotifications}
+                      onChange={(e) => setSettingsState({ ...settingsState, emailNotifications: e.target.checked })}
+                      className="w-4 h-4 text-alignpoint-red border-alignpoint-gray-300 rounded focus:ring-alignpoint-red"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-alignpoint-gray-700 font-medium">Push notifications</span>
+                      <p className="text-sm text-alignpoint-gray-500">Get instant updates in your browser</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settingsState.smsNotifications}
+                      onChange={(e) => setSettingsState({ ...settingsState, smsNotifications: e.target.checked })}
+                      className="w-4 h-4 text-alignpoint-red border-alignpoint-gray-300 rounded focus:ring-alignpoint-red"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-alignpoint-gray-700 font-medium">Project updates</span>
+                      <p className="text-sm text-alignpoint-gray-500">Get notified about project milestones and changes</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settingsState.projectUpdates}
+                      onChange={(e) => setSettingsState({ ...settingsState, projectUpdates: e.target.checked })}
+                      className="w-4 h-4 text-alignpoint-red border-alignpoint-gray-300 rounded focus:ring-alignpoint-red"
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between">
+                    <div>
+                      <span className="text-alignpoint-gray-700 font-medium">Task reminders</span>
+                      <p className="text-sm text-alignpoint-gray-500">Receive reminders about upcoming tasks</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settingsState.taskReminders}
+                      onChange={(e) => setSettingsState({ ...settingsState, taskReminders: e.target.checked })}
+                      className="w-4 h-4 text-alignpoint-red border-alignpoint-gray-300 rounded focus:ring-alignpoint-red"
+                    />
+                  </label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="system" className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                <h3 className="text-lg font-semibold text-alignpoint-black mb-4">System Information</h3>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-alignpoint-gray-600">Version:</span>
+                        <span className="font-medium text-alignpoint-black">{settingsState.version}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-alignpoint-gray-600">Last Login:</span>
+                        <span className="font-medium text-alignpoint-black">{settingsState.lastLogin}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-alignpoint-gray-600">Browser:</span>
+                        <span className="font-medium text-alignpoint-black">{settingsState.browser}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-alignpoint-gray-600">Platform:</span>
+                        <span className="font-medium text-alignpoint-black">{settingsState.platform}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-2">Support Information</h4>
+                    <div className="space-y-1 text-sm text-gray-600">
+                      <p>For technical support, contact: support@alignpoint.com</p>
+                      <p>Support hours: Monday - Friday, 9:00 AM - 5:00 PM EST</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <div className="mt-8 flex justify-end space-x-3">
+        <Button variant="outline" onClick={() => window.history.back()}>Cancel</Button>
+        <Button className="bg-alignpoint-red hover:bg-alignpoint-red/90 text-white" onClick={handleSave}>
+          Save Changes
+        </Button>
+      </div>
+    </div>
+  )
+    
   const handleRemoveUser = (userId: number) => {
     if (confirm("Are you sure you want to remove this user?")) {
       setUsers(users.filter(user => user.id !== userId))
@@ -143,7 +400,7 @@ export function SettingsContent() {
     )
   }
 
-  const settings = [
+  const settingsSections: SettingsSection[] = [
     {
       id: "personal",
       title: "Personal Settings",
@@ -463,7 +720,7 @@ export function SettingsContent() {
       <section className="max-w-4xl mx-auto py-6">
         <div className="flex gap-6">
           <div className="w-64 space-y-1">
-            {settings.map((section) => (
+            {settingsSections.map((section) => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
@@ -479,7 +736,7 @@ export function SettingsContent() {
           ))}
         </div>
         <div className="flex-1">
-          {settings.map((section) => (
+          {settingsSections.map((section) => (
             section.id === activeSection && (
               <Card key={section.id} className="border border-alignpoint-gray-200">
                 <CardHeader>
@@ -507,18 +764,18 @@ export function SettingsContent() {
     />
 
     {/* Edit User Modal */}
-    {selectedUser && (
+    {selectedUser ? (
       <UserModal
         isOpen={showEditUserModal}
         onClose={() => setShowEditUserModal(false)}
-        onSubmit={(userData) => handleEditUser(selectedUser.id, userData)}
+        onSubmit={(userData) => selectedUser && handleEditUser(selectedUser.id, userData)}
         initialData={{
-          name: selectedUser.name,
-          email: selectedUser.email,
-          role: selectedUser.role
+          name: selectedUser?.name || "",
+          email: selectedUser?.email || "",
+          role: selectedUser?.role || ""
         }}
       />
-    )}
+    ) : null}
     </>
   )
 }
