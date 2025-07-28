@@ -100,17 +100,17 @@ export default function LoginPage() {
   }
 
   // Role-based dashboard routing
-  if (userSession) {
+  if (userSession && userSession.role) {
     switch (userSession.role) {
       case "admin":
-        return <AdminDashboard userSession={userSession} />
+        return <AdminDashboard userSession={userSession as UserSession & { role: NonNullable<UserRole> }} />
       case "project_manager":
       case "designer": 
       case "developer":
       case "tester":
-        return <TeamMemberDashboard userSession={userSession} />
+        return <TeamMemberDashboard userSession={userSession as UserSession & { role: NonNullable<UserRole> }} />
       case "client":
-        return <ClientDashboard userSession={userSession} />
+        return <ClientDashboard userSession={userSession as UserSession & { role: NonNullable<UserRole> }} />
       default:
         return <div>Unknown user role</div>
     }
