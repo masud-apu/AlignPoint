@@ -49,10 +49,16 @@ export function TaskDetailModal({
           <div className="space-y-6">
             {/* Task Details */}
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-sm text-alignpoint-gray-500">Assignee</Label>
                   <p className="font-medium text-alignpoint-black">{localTask.assignee}</p>
+                </div>
+                <div>
+                  <Label className="text-sm text-alignpoint-gray-500">Reviewer</Label>
+                  <p className="font-medium text-blue-600">
+                    {localTask.reviewer || "Not assigned"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm text-alignpoint-gray-500">Priority</Label>
@@ -69,6 +75,10 @@ export function TaskDetailModal({
                   <p className="font-medium text-alignpoint-black capitalize">
                     {localTask.status.replace('_', ' ')}
                   </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-alignpoint-gray-500">Created</Label>
+                  <p className="font-medium text-alignpoint-black">{localTask.createdAt}</p>
                 </div>
               </div>
             </div>

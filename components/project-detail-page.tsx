@@ -30,6 +30,7 @@ export interface Task {
   description: string
   status: "todo" | "in_progress" | "in_review" | "done"
   assignee: string
+  reviewer?: string
   priority: "low" | "medium" | "high" | "critical"
   dueDate: string
   createdAt: string
@@ -121,6 +122,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           description: "Initialize repository and basic folder structure",
           status: "done",
           assignee: "Ben Developer",
+          reviewer: "Priya Manager",
           priority: "high",
           dueDate: "2024-05-10",
           createdAt: "2024-05-01",
@@ -146,6 +148,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           description: "Gather and document all project requirements",
           status: "in_progress",
           assignee: "Priya Manager",
+          reviewer: "Alex Admin",
           priority: "critical",
           dueDate: "2024-05-15",
           createdAt: "2024-05-02",
@@ -168,6 +171,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           description: "Design all major screens and user flows",
           status: "in_review",
           assignee: "Sarah Designer",
+          reviewer: "Ben Developer",
           priority: "high",
           dueDate: "2024-05-25",
           createdAt: "2024-05-10",
@@ -594,11 +598,21 @@ function TaskCard({
         )}
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 bg-alignpoint-red text-white rounded-full flex items-center justify-center text-xs font-medium">
-              {task.assignee.split(' ').map(n => n[0]).join('')}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1">
+              <div className="w-6 h-6 bg-alignpoint-red text-white rounded-full flex items-center justify-center text-xs font-medium">
+                {task.assignee.split(' ').map(n => n[0]).join('')}
+              </div>
+              <span className="text-xs text-alignpoint-gray-600">{task.assignee}</span>
             </div>
-            <span className="text-xs text-alignpoint-gray-600">{task.assignee}</span>
+            {task.reviewer && (
+              <div className="flex items-center space-x-1">
+                <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                  {task.reviewer.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span className="text-xs text-blue-600">Reviewer</span>
+              </div>
+            )}
           </div>
           <span className="text-xs text-alignpoint-gray-500">{task.dueDate}</span>
         </div>
@@ -903,6 +917,7 @@ function CreateTaskModal({
     title: "",
     description: "",
     assignee: teamMembers[0]?.name || "",
+    reviewer: teamMembers[1]?.name || "",
     priority: "medium" as Task["priority"],
     dueDate: "",
     status: "todo" as Task["status"],
@@ -912,6 +927,13 @@ function CreateTaskModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation: Reviewer should be different from assignee
+    if (formData.reviewer && formData.reviewer === formData.assignee) {
+      alert("Reviewer must be different from the assignee")
+      return
+    }
+    
     onSave({
       ...formData,
       phaseId,
@@ -951,7 +973,7 @@ function CreateTaskModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Assignee</Label>
                 <select
@@ -962,6 +984,22 @@ function CreateTaskModal({
                   {teamMembers.map((member) => (
                     <option key={member.id} value={member.name}>{member.name}</option>
                   ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Reviewer</Label>
+                <select
+                  value={formData.reviewer}
+                  onChange={(e) => setFormData({ ...formData, reviewer: e.target.value })}
+                  className="w-full p-2 border border-alignpoint-gray-300 rounded-md focus:border-alignpoint-red focus:ring-1 focus:ring-alignpoint-red focus:outline-none"
+                >
+                  <option value="">Select Reviewer</option>
+                  {teamMembers
+                    .filter(member => member.name !== formData.assignee)
+                    .map((member) => (
+                      <option key={member.id} value={member.name}>{member.name}</option>
+                    ))}
                 </select>
               </div>
 
