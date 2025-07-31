@@ -33,6 +33,7 @@ export interface Task {
   reviewer?: string
   priority: "low" | "medium" | "high" | "critical"
   dueDate: string
+  estimatedHours: number
   createdAt: string
   phaseId: number
   subtasks: Subtask[]
@@ -125,6 +126,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           reviewer: "Priya Manager",
           priority: "high",
           dueDate: "2024-05-10",
+          estimatedHours: 8,
           createdAt: "2024-05-01",
           phaseId: initialPhases[0].id,
           subtasks: [
@@ -151,6 +153,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           reviewer: "Alex Admin",
           priority: "critical",
           dueDate: "2024-05-15",
+          estimatedHours: 16,
           createdAt: "2024-05-02",
           phaseId: initialPhases[0].id,
           subtasks: [
@@ -174,6 +177,7 @@ export function ProjectDetailPage({ project, onBack }: ProjectDetailPageProps) {
           reviewer: "Ben Developer",
           priority: "high",
           dueDate: "2024-05-25",
+          estimatedHours: 24,
           createdAt: "2024-05-10",
           phaseId: initialPhases[1].id,
           subtasks: [
@@ -597,6 +601,10 @@ function TaskCard({
           </div>
         )}
 
+        <div className="text-xs text-alignpoint-gray-500">
+          ⏱️ Est: {task.estimatedHours}h {task.timeLogged && `| Logged: ${task.timeLogged}h`}
+        </div>
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
@@ -920,6 +928,7 @@ function CreateTaskModal({
     reviewer: teamMembers[1]?.name || "",
     priority: "medium" as Task["priority"],
     dueDate: "",
+    estimatedHours: "",
     status: "todo" as Task["status"],
   })
   
@@ -934,8 +943,21 @@ function CreateTaskModal({
       return
     }
     
+    // Validation: Due date is required
+    if (!formData.dueDate) {
+      alert("Please select a due date")
+      return
+    }
+    
+    // Validation: Estimated hours is required
+    if (!formData.estimatedHours || parseFloat(formData.estimatedHours) <= 0) {
+      alert("Please enter a valid estimated hours value")
+      return
+    }
+    
     onSave({
       ...formData,
+      estimatedHours: parseFloat(formData.estimatedHours),
       phaseId,
       subtasks: subtasks,
     })
@@ -1018,13 +1040,29 @@ function CreateTaskModal({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Due Date</Label>
-              <Input
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Due Date *</Label>
+                <Input
+                  type="date"
+                  value={formData.dueDate}
+                  onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Estimated Hours *</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formData.estimatedHours}
+                  onChange={(e) => setFormData({ ...formData, estimatedHours: e.target.value })}
+                  placeholder="Enter estimated hours"
+                  required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">

@@ -71,6 +71,10 @@ export function TaskDetailModal({
                   <p className="font-medium text-alignpoint-black">{localTask.dueDate}</p>
                 </div>
                 <div>
+                  <Label className="text-sm text-alignpoint-gray-500">Estimated Hours</Label>
+                  <p className="font-medium text-alignpoint-black">{localTask.estimatedHours}h</p>
+                </div>
+                <div>
                   <Label className="text-sm text-alignpoint-gray-500">Status</Label>
                   <p className="font-medium text-alignpoint-black capitalize">
                     {localTask.status.replace('_', ' ')}
