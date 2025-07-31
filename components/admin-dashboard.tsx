@@ -22,6 +22,7 @@ import { OverdueTasksPage } from "@/components/overdue-tasks-page"
 import { ActiveProjectsList } from "@/components/active-projects-list"
 import { AttentionNeededPanel } from "@/components/attention-needed-panel"
 import { RecentActivityFeed } from "@/components/recent-activity-feed"
+import SearchResultsPage from "@/components/search-results-page"
 
 interface UserSession {
   email: string
@@ -39,9 +40,10 @@ interface AdminDashboardProps {
 ───────────────────────────────────────────────────────── */
 
 export default function AdminDashboard({ userSession }: AdminDashboardProps) {
-  const [currentView, setCurrentView] = useState<"dashboard" | "projects" | "users" | "activity" | "overdue" | "settings">("dashboard")
+  const [currentView, setCurrentView] = useState<"dashboard" | "projects" | "users" | "activity" | "overdue" | "settings" | "search">("dashboard")
   const [showCreateProject, setShowCreateProject] = useState(false)
   const [selectedProject, setSelectedProject] = useState<any>(null)
+  const [searchQuery, setSearchQuery] = useState("")
 
   // Demo project data
   const [projects, setProjects] = useState([
@@ -113,6 +115,20 @@ export default function AdminDashboard({ userSession }: AdminDashboardProps) {
     setCurrentView("overdue")
   }
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query)
+    if (query.trim()) {
+      setCurrentView("search")
+    }
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      setCurrentView("search")
+    }
+  }
+
   // Calculate summary statistics
   const totalProjects = projects.length
   const activeProjects = projects.filter(p => p.status > 0 && p.status < 100).length
@@ -128,8 +144,11 @@ export default function AdminDashboard({ userSession }: AdminDashboardProps) {
     <div className="min-h-screen bg-alignpoint-gray-50">
       <Header
         currentView={currentView}
-        onViewChange={(view) => setCurrentView(view as "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings")}
+        onViewChange={(view) => setCurrentView(view as "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings" | "search")}
         userSession={userSession}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearchSubmit={handleSearchSubmit}
       />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
@@ -198,6 +217,13 @@ export default function AdminDashboard({ userSession }: AdminDashboardProps) {
         {currentView === "activity" && <ActivityManagementContent />}
 
         {currentView === "overdue" && <OverdueTasksContent />}
+
+        {currentView === "search" && (
+          <SearchResultsPage 
+            query={searchQuery} 
+            onBackToDashboard={() => setCurrentView("dashboard")}
+          />
+        )}
       </main>
 
       {showCreateProject && (
@@ -243,11 +269,17 @@ function SummaryCard({ title, value, icon, color }: SummaryCardProps) {
 function Header({
   currentView,
   onViewChange,
-  userSession
+  userSession,
+  searchQuery,
+  onSearchChange,
+  onSearchSubmit
 }: {
-  currentView: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings"
-  onViewChange: (view: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings") => void
+  currentView: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings" | "search"
+  onViewChange: (view: "dashboard" | "projects" | "users" | "activity" | "overdue" | "settings" | "search") => void
   userSession: UserSession
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  onSearchSubmit: (e: React.FormEvent) => void
 }) {
   const handleLogout = () => {
     // Reset to login page
@@ -267,9 +299,11 @@ function Header({
 
         {/* Global Search */}
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
+          <form onSubmit={onSearchSubmit} className="relative w-full">
             <Input
               type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search projects, tasks, or team members..."
               className="pl-10 border-alignpoint-gray-300 focus:border-alignpoint-red focus:ring-alignpoint-red"
             />
@@ -278,7 +312,7 @@ function Header({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-          </div>
+          </form>
         </div>
 
         {/* Navigation */}
