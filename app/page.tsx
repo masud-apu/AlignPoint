@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlignpointLogo } from "@/components/alignpoint-logo"
+import { AlignpointfirstLogo } from "@/components/alignpoint-First-logo"
 import AdminDashboard from "@/components/admin-dashboard"
 import TeamMemberDashboard from "@/components/team-member-dashboard"
 import ClientDashboard from "@/components/client-dashboard"
@@ -121,7 +122,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md border-alignpoint-gray-200">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4">
-            <AlignpointLogo size="lg" showText={false} />
+            <AlignpointfirstLogo showText={false} className="w-20 h-20" />
           </div>
           <CardTitle className="text-2xl font-bold text-alignpoint-black">Welcome to Alignpoint</CardTitle>
           <CardDescription className="text-alignpoint-gray-600">Sign in to your account</CardDescription>
